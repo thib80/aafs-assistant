@@ -87,6 +87,7 @@ def process():
             
         else:
             response = """Je suis désolée je ne trouve rien dans l'inventaire. Est-ce qu'il y a d'autres sujets qui vous intéressent ?"""
+            log_response = response
     upload_session(session_id, s_bucket, session_logs, g_dict_list, p_dict_list, topics_list, scout_topics_list, user_params, user_prompt, log_response)
     logger.log_text(f'session {session_id}: response\n{response}')
     logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
