@@ -3,9 +3,10 @@ from flask import Flask
 import flask
 from datetime import datetime
 from google.cloud import storage, bigquery #, tasks_v2
-from utils import init_app, init_logger, get_llm_json, get_artefacts, retrieve_session, upload_session
+from utils import init_app, init_logger, get_llm_json, get_artefacts, retrieve_session, upload_session, get_wiki
 from config import SERVICE_NAME, REGION, SESSION_BUCKET_NAME, COMPLEX_MODEL_NAME , MAX_TOKENS, RESPONSE_HTML
-from templates.inventory import FORMAT as INVENTORY_FORMAT, HTML as INVENTORY_HTML_TEMPLATE, PROMPT as G_TOPICS_PROMPT, UPDATE_PROMPT as  UPDATE_TOPICS_PROMPT, HTML as  TOPICS_HTML_TEMPLATE
+from templates.inventory import FORMAT as INVENTORY_FORMAT, HTML as INVENTORY_HTML_TEMPLATE
+from templates.wiki import PROMPT as WIKI_PROMPT, FORMAT as WIKI_FORMAT
 from google.api_core.exceptions import InvalidArgument
 import vertexai
 from vertexai.generative_models import GenerativeModel, GenerationConfig
@@ -84,10 +85,19 @@ def process():
             response = """J'ai trouvé ces résultats qui pourraient vous intéresser.<br><br>"""
             response += '<br><br>'.join(html_lines)
             log_response = 'voici des résultats qui peuvent vous intéresser'
+    elif intent == 'marc':
+        user_input = json_response['response']
+        sections = get_wiki(user_input, logger, session_id)
+        wiki_string = '\n\n'.join([f"{row_dict['section']}:\n{row_dict['content']}" for row_dict in sections])
+        prompt = WIKI_PROMPT.format(conversation_history=conversation_history, wiki_string=wiki_string)
+        wiki_response = get_llm_json(prompt, complex_model, WIKI_FORMAT, logger)[0]['response']
+        
+        logger.log_text(f'session {session_id}, retrieved sections\n{json.dumps(sections)}')
+        logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
+        response = f'{wiki_response}\n\n(source wikipedia)'
+        log_response = wiki_response
             
-        else:
-            response = """Je suis désolée je ne trouve rien dans l'inventaire. Est-ce qu'il y a d'autres sujets qui vous intéressent ?"""
-            log_response = response
+        
     upload_session(session_id, s_bucket, session_logs, g_dict_list, p_dict_list, topics_list, scout_topics_list, user_params, user_prompt, log_response)
     logger.log_text(f'session {session_id}: response\n{response}')
     logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')

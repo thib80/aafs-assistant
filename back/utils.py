@@ -4,6 +4,7 @@ from uuid import uuid4
 from google.cloud import bigquery, logging
 from config import SERVICE_NAME, BASE_URL, SERVICE_ACCOUNT_EMAIL, SCOPES, MAX_TOKENS
 from templates.inventory import QUERY as INVENTORY_QUERY_TEMPLATE
+from templates.wiki import QUERY as WIKI_QUERY_TEMPLATE
 import google.auth
 from vertexai.generative_models import GenerationConfig
 from flask import Flask
@@ -122,7 +123,19 @@ def get_artefacts(user_input, logger, session_id):
     query = INVENTORY_QUERY_TEMPLATE.format(
         input=user_input
     )
-    # <img src="pic_trulli.jpg" alt="Italian Trulli">
+    logger.log_text(f'session {session_id}, query:\n{query}')
+    bq_client = bigquery.Client()
+    result = bq_client.query(query).result()
+    result_rows = [dict(row) for row in result]
+    
+    
+    return result_rows
+
+
+def get_wiki(user_input, logger, session_id):
+    query = WIKI_QUERY_TEMPLATE.format(
+        input=user_input
+    )
     logger.log_text(f'session {session_id}, query:\n{query}')
     bq_client = bigquery.Client()
     result = bq_client.query(query).result()
