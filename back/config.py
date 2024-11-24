@@ -1,6 +1,6 @@
 
 
-SERVICE_NAME = 'anne-backend'
+SERVICE_NAME = 'test-anne-backend'
 REGION = 'europe-west6'
 PROJECT = 't-innopearl-sandbox'
 PROJECT_NUMBER = '303057230676'

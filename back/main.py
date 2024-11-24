@@ -41,12 +41,16 @@ def process():
     prompt = f"""you are Anne de Quirielle, the descendant of engineer, scientist, entrepreneur and philantropist Marc Seguin. 
     You have access to a database that contains the inventory of Varagnes, Marc Seguin's house, in which you also grew up.
     The collection holds various artefacts, ranging from science instruments to books and letters.
-    From the conversation history below, assess whether the user is interested in certain pieces of the inventory, in which case reply with intent "inventory" and respond with the keywords that could be used to retrieve the relevant artefacts from their descriptions embeddings.
-    Make sure that you only retain meaningful keywords and remove generic ones.
+    From the conversation history below, assess whether the user is interested in 
+    - certain pieces of the inventory, in which case reply with intent "inventory"
+    - is curious about the life of Marc Seguin, in which case reply with intent "marc"
+    - is interested in finding out details about life at Varagnes during your time there, in which case reply with intent "anne"
+    For all these intents, also respond with the keywords that could be used to retrieve relevant artefacts from their descriptions embeddings. Make sure that you only retain meaningful keywords and remove generic ones.
     Otherwise just reply with intent "generic" and respond with the appropriate response (in french) so that the user understands what you can do for him.
     Here is the conversation history:
     {conversation_history}
     """
+    logger.log_text(f'session {session_id}, prompt\n{prompt}')
     json_response = get_llm_json(prompt, complex_model, INVENTORY_FORMAT, logger)[0]
     logger.log_text(f'session {session_id}, intent response\n{json.dumps(json_response)}')
 
@@ -57,29 +61,33 @@ def process():
     elif intent == 'inventory':
         user_input = json_response['response']
         artefacts = get_artefacts(user_input.lower().replace('seguin', ''), logger, session_id)
-        html_lines = []
-        for artefact_dict in artefacts:
-            title = f'{artefact_dict['title']} (source:{artefact_dict['source']})'
-            url = None
-            if artefact_dict['url_large'] == 'None':
-                if artefact_dict['url_medium'] == 'None':
-                    url = artefact_dict['url_small']
+        
+        if len(artefacts) > 0:
+            html_lines = []
+            for artefact_dict in artefacts:
+                title = f"{artefact_dict['title']} (source:{artefact_dict['source']})"
+                url = None
+                if artefact_dict['url_large'] == 'None':
+                    if artefact_dict['url_medium'] == 'None':
+                        url = artefact_dict['url_small']
+                    else:
+                        url = artefact_dict['url_medium']
                 else:
-                    url = artefact_dict['url_medium']
-            else:
-                url = artefact_dict['url_large']
-            img_html = f'<a href="{url}" target="_blank"><img src="{url}" alt="{title}"/></a>' if url != 'None' else ''
+                    url = artefact_dict['url_large']
+                img_html = f'<a href="{url}" target="_blank"><img src="{url}" alt="{title}"/></a>' if url != 'None' else ''
 
-            description = artefact_dict['description']
-            html_lines.append(INVENTORY_HTML_TEMPLATE.format(title=title, img_html=img_html, description=description))
-        
-        logger.log_text(f'session {session_id}, retrieved artefacts\n{json.dumps(artefacts)}')
-        logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
-        response = """J'ai trouvé ces résultats qui pourraient vous intéresser.<br><br>"""
-        response += '<br><br>'.join(html_lines)
-        log_response = 'voici des résultats qui peuvent vous intéresser'
-        
-    
+                description = artefact_dict['description']
+                html_lines.append(INVENTORY_HTML_TEMPLATE.format(title=title, img_html=img_html, description=description))
+            
+            logger.log_text(f'session {session_id}, retrieved artefacts\n{json.dumps(artefacts)}')
+            logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
+            response = """J'ai trouvé ces résultats qui pourraient vous intéresser.<br><br>"""
+            response += '<br><br>'.join(html_lines)
+            log_response = 'voici des résultats qui peuvent vous intéresser'
+            
+        else:
+            response = """Je suis désolée je ne trouve rien dans l'inventaire. Est-ce qu'il y a d'autres sujets qui vous intéressent ?"""
+            log_response = response
     upload_session(session_id, s_bucket, session_logs, g_dict_list, p_dict_list, topics_list, scout_topics_list, user_params, user_prompt, log_response)
     logger.log_text(f'session {session_id}: response\n{response}')
     logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
