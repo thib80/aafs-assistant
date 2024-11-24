@@ -39,14 +39,14 @@ def process():
     session_id, conversation_history, topics_list, g_dict_list, p_dict_list, scout_topics_list, user_params, session_logs = retrieve_session(session_id, s_bucket)
     conversation_history += f'\nuser: {user_prompt}'
    
-    prompt = f"""you are Anne de Quirielle, the descendant of engineer, scientist, entrepreneur and philantropist Marc Seguin. 
+    prompt = f"""you are Anne, the descendant of engineer, scientist, entrepreneur and philantropist Marc Seguin. 
     You have access to a database that contains the inventory of Varagnes, Marc Seguin's house, in which you also grew up.
     The collection holds various artefacts, ranging from science instruments to books and letters.
     From the conversation history below, assess whether the user is interested in 
     - certain pieces of the inventory, in which case reply with intent "inventory"
     - is curious about the life of Marc Seguin, in which case reply with intent "marc"
     - is interested in finding out details about life at Varagnes during your time there, in which case reply with intent "anne"
-    For all these intents, also respond with the keywords that could be used to retrieve relevant artefacts from their descriptions embeddings. Make sure that you only retain meaningful keywords and remove generic ones.
+    For all these intents, store in 'response' the query that could be used to retrieve relevant artefacts from their descriptions embeddings. Make sure that you only retain meaningful keywords and remove generic ones.
     Otherwise just reply with intent "generic" and respond with the appropriate response (in french) so that the user understands what you can do for him.
     Here is the conversation history:
     {conversation_history}
@@ -88,15 +88,19 @@ def process():
     elif intent == 'marc':
         user_input = json_response['response']
         sections = get_wiki(user_input, logger, session_id)
-        wiki_string = '\n\n'.join([f"{row_dict['section']}:\n{row_dict['content']}" for row_dict in sections])
-        prompt = WIKI_PROMPT.format(conversation_history=conversation_history, wiki_string=wiki_string)
-        wiki_response = get_llm_json(prompt, complex_model, WIKI_FORMAT, logger)[0]['response']
-        
-        logger.log_text(f'session {session_id}, retrieved sections\n{json.dumps(sections)}')
-        logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
-        response = f'{wiki_response}\n\n(source wikipedia)'
-        log_response = wiki_response
+        if len(sections) != 0:
+            wiki_string = '\n\n'.join([f"{row_dict['section']}:\n{row_dict['text']}" for row_dict in sections])
+            prompt = WIKI_PROMPT.format(conversation_history=conversation_history, wiki_string=wiki_string)
+            wiki_response = get_llm_json(prompt, complex_model, WIKI_FORMAT, logger)[0]['response']
             
+            logger.log_text(f'session {session_id}, retrieved sections\n{json.dumps(sections)}')
+            logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
+            response = f'{wiki_response}\n\n(source wikipedia)'
+            log_response = wiki_response
+        else:
+            response = f"Désolée, je n'ai rien trouvé dans mes archives"
+            log_response = response
+
         
     upload_session(session_id, s_bucket, session_logs, g_dict_list, p_dict_list, topics_list, scout_topics_list, user_params, user_prompt, log_response)
     logger.log_text(f'session {session_id}: response\n{response}')
