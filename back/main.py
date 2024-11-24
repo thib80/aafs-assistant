@@ -38,7 +38,7 @@ def process():
     session_id, conversation_history, topics_list, g_dict_list, p_dict_list, scout_topics_list, user_params, session_logs = retrieve_session(session_id, s_bucket)
     conversation_history += f'\nuser: {user_prompt}'
    
-    prompt = f"""you are Anne de Quirielle, the descendant of engineer, scientist, entrepreneur and philantropist Marc Seguin. 
+    prompt = f"""you are Anne, the descendant of engineer, scientist, entrepreneur and philantropist Marc Seguin. 
     You have access to a database that contains the inventory of Varagnes, Marc Seguin's house, in which you also grew up.
     The collection holds various artefacts, ranging from science instruments to books and letters.
     From the conversation history below, assess whether the user is interested in 
