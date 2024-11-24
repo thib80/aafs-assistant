@@ -28,7 +28,7 @@ FROM
 
 select distinct * except(id), 'https://fr.wikipedia.org' as source from candidate_ids join `wiki.marc_seguin` wiki
 on candidate_ids.id = wiki.section
-where distance < 0.8 order by distance limit 5
+where distance < 1 order by distance limit 5
 """
 
 
@@ -37,7 +37,7 @@ PROMPT = """you are Anne, the descendant of engineer, scientist, entrepreneur an
 You are helping users discover the rich history of Marc Seguin's life, and you already had the following conversation:
 {conversation_history}
 
-Use the  following elements to write a synthetic response to the user's last question:
+Use the only following elements to write a response to the user's last question. Do not extrapolate from your general knowledge.
 {wiki_string}
     """
 
