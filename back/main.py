@@ -43,8 +43,6 @@ def process():
     The collection holds various artefacts, ranging from science instruments to books and letters.
     From the conversation history below, assess whether the user is interested in 
     - certain pieces of the inventory, in which case reply with intent "inventory"
-    - is curious about the life of Marc Seguin, in which case reply with intent "marc"
-    - is interested in finding out details about life at Varagnes during your time there, in which case reply with intent "anne"
     For all these intents, also respond with the keywords that could be used to retrieve relevant artefacts from their descriptions embeddings. Make sure that you only retain meaningful keywords and remove generic ones.
     Otherwise just reply with intent "generic" and respond with the appropriate response (in french) so that the user understands what you can do for him.
     Here is the conversation history:

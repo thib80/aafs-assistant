@@ -34,7 +34,7 @@ FORMAT = {
 QUERY = """with query_embedding as (
 SELECT * FROM
   ML.GENERATE_EMBEDDING(
-    MODEL `u_nantes.embedding-gecko`,
+    MODEL `u_nantes.u_nantes-embedding`,
     (SELECT '{input}' as title, '{input}' as content),
     STRUCT(TRUE AS flatten_json_output, 'SEMANTIC_SIMILARITY' as task_type)
   )
