@@ -107,12 +107,17 @@ def process():
         sections = get_wiki(user_input, logger, session_id)
         if len(sections) != 0:
             wiki_string = '\n\n'.join([f"{row_dict['section']}:\n{row_dict['text']}" for row_dict in sections])
+            wiki_prefix = 'https://fr.wikipedia.org/wiki/' 
+            sources_urls = [f"{wiki_prefix}{row_dict['page_name']}#{row_dict['section'].split('^')[-1].replace(' ', '_')}" for row_dict in sections]
+            sources = '<br>'.join([f'<a href="{url}" target="_blank">{url}</a>' for url in sources_urls])
+            
             prompt = WIKI_PROMPT.format(conversation_history=conversation_history, wiki_string=wiki_string)
-            wiki_response = get_llm_json(prompt, complex_model, WIKI_FORMAT, logger)[0]['response']
+            wiki_response = get_llm_json(prompt, complex_model, WIKI_FORMAT, logger)[0]['response'].replace('\n', '<br>')
+            logger.log_text(f'session {session_id}, llm response\n{wiki_response}')
             
             logger.log_text(f'session {session_id}, retrieved sections\n{json.dumps(sections)}')
             logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')
-            response = f'{wiki_response}\n\n(source wikipedia)'
+            response = f"{wiki_response}<br><p><small>source(s):<br>{sources}</small></p>"
             log_response = wiki_response
         else:
             response = f"Désolée, je n'ai rien trouvé dans mes archives"

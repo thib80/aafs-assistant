@@ -17,7 +17,7 @@ SELECT * FROM
   distance as distance
 FROM
   VECTOR_SEARCH(
-    TABLE `wiki.marc_seguin_vdb`,
+    TABLE `wiki.wiki_vdb`,
     'ml_generate_embedding_result',
     TABLE query_embedding,
     top_k => 50,
@@ -26,9 +26,9 @@ FROM
     options => '{{"use_brute_force":true}}'
   ))
 
-select distinct * except(id), 'https://fr.wikipedia.org' as source from candidate_ids join `wiki.marc_seguin` wiki
-on candidate_ids.id = wiki.section
-where distance < 1 order by distance limit 5
+select distinct * except(id), from candidate_ids join `wiki.wiki` wiki
+on candidate_ids.id = concat(wiki.page_name, '|', wiki.section)
+where distance < .8 order by distance limit 5
 """
 
 

@@ -2,7 +2,7 @@
 
 SERVICE_NAME = 'test-anne-backend'
 REGION = 'europe-west6'
-PROJECT = 't-innopearl-sandbox'
+PROJECT = 'amis-fondation-seguin'
 PROJECT_NUMBER = '303057230676'
 BASE_URL = 'https://process-corpus-32scxi5uja-oa.a.run.app'
 IMAGE_NAME = f'{REGION}-docker.pkg.dev/{PROJECT}/cloud-run-source-deploy/{SERVICE_NAME}:latest'
