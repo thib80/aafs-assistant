@@ -41,11 +41,12 @@ def process():
    
     prompt = f"""you are Anne, the descendant of engineer, scientist, entrepreneur and philantropist Marc Seguin. 
     You have access to a database that contains the inventory of Varagnes, Marc Seguin's house.
-    You also have access to Marc Seguin's detail biography.
     The collection holds various artefacts, ranging from science instruments to books and letters.
+    You also have access to the Seguins extended family history and accomplishments.
+    
     From the conversation history below, assess whether the user is interested in 
     - certain pieces of the inventory, in which case reply with intent "inventory"
-    - is curious about the life of Marc Seguin, in which case reply with intent "marc"
+    - is curious about the history of the Seguin family and their accomplishments or companies, in which case reply with intent "wiki"
     For all these intents, store in 'response' the query that could be used to retrieve relevant artefacts from their descriptions embeddings. Make sure that you only retain meaningful keywords and remove generic ones.
     Otherwise just reply with intent "generic" and respond with the appropriate response (in french) so that the user understands what you can do for him.
     Here is the conversation history:
@@ -102,7 +103,7 @@ def process():
         else:
             response = "Je suis désolée mais je n'ai rien trouvé dans l'inventaire à ce sujet"
             log_response = response
-    elif intent == 'marc':
+    elif intent == 'wiki':
         user_input = json_response['response']
         sections = get_wiki(user_input, logger, session_id)
         if len(sections) != 0:
@@ -123,7 +124,7 @@ def process():
             response = f"Désolée, je n'ai rien trouvé dans mes archives"
             log_response = response
 
-        
+    response += f'||DETAILS START||<br><br>{response}||DETAILS END||'        
     upload_session(session_id, s_bucket, session_logs, g_dict_list, p_dict_list, topics_list, scout_topics_list, user_params, user_prompt, log_response)
     logger.log_text(f'session {session_id}: response\n{response}')
     logger.log_text(f'session id: {session_id}, elapsed {(datetime.now() - start_ts).total_seconds()}')

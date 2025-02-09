@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <title>AAFS-Anne</title>
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
@@ -12,16 +12,25 @@
             flex-direction: column;
             height: 100vh;
             margin: 0;
-            background-color: rgb(69, 9, 9);
-            color: ivory
+            /* Use background image */
+            background-image: url("https://seguin-varagnes.eu/wp-content/uploads/2024/02/FS_Logo_Light-e1713901279664.png"); /* Replace with your image filename */
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-attachment: fixed; /* Keep background fixed */
+            background-position: center;
+            color: ivory; /* Text color for better contrast */
+            /* Add transparency to the overall content */
+            background-color: rgba(69, 9, 9, 0.5); /* Example: 50% black overlay */
         }
 
         #chatbox {
             flex: 1;
             overflow-y: auto;
-            padding: 10px; /* Add padding for better visual separation */
+            padding: 10px;
             width: 100%;
             box-sizing: border-box;
+            /* Add transparency to the chatbox */
+            background-color: rgba(69, 9, 9, 0.5); /* Example: 70% black background */
         }
 
         .message {
@@ -29,38 +38,48 @@
             padding: 10px;
             border-radius: 10px;
             width: 80%;
-            /* max-width: 80%; */
-            word-break: break-word; /* Break long words */
-            box-sizing: border-box; /* Include padding and border in element's total width and height */
+            word-break: break-word;
+            box-sizing: border-box;
+            /* Add transparency to the messages */
+            opacity: 0.9; /* Example: 90% opacity */
         }
 
         .user-message {
-            background-color: rgb(44, 4, 4);
+            background-color: rgba(44, 4, 4, 0.9); /* Add transparency */
             align-self: flex-start;
-            /* width: 80%; */
             float: left;
         }
 
         .bot-message {
-            background-color: rgb(44, 4, 4);
-            align-self: flex-end; /* Align bot messages to the left */
+            background-color: rgba(44, 4, 4, 0.9); /* Add transparency */
+            align-self: flex-end;
             float: right;
             border-color: white;
-            /* border-width: 1; */
-            /* border-radius: 0%; */
             border-style: solid;
-            border-width: 1px 1px;/* width: 80%; */
+            border-width: 1px 1px;
         }
-
+        .expand-button {
+            background-color: rgba(44, 4, 4, 0.9); /* Example background color */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border-color: white;
+            border-width: 1px 1px;
+            border-style: solid;
+            cursor: pointer;
+            margin-top: 5px; /* Add some spacing */
+            font-size: 0.9em;
+        }
 
         #input-area {
             padding: 10px;
             display: flex;
+            background-color: rgba(69, 9, 9, 0.5); /* Example: 50% black overlay */
         }
 
         #user-input {
             flex: 1;
-            font-size: medium;
             font-size: medium;
             margin-right: 10px;
             border-radius: 5px;
@@ -167,13 +186,57 @@
             }
         }
 
+        // function displayMessage(message, messageClass) {
+        //     const messageElement = document.createElement('div');
+        //     messageElement.classList.add('message', messageClass);
+        //     messageElement.innerHTML = message;
+        //     chatbox.appendChild(messageElement);
+        //     chatbox.scrollTop = chatbox.scrollHeight;
+        // }
         function displayMessage(message, messageClass) {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', messageClass);
-            messageElement.innerHTML = message;
-            chatbox.appendChild(messageElement);
-            chatbox.scrollTop = chatbox.scrollHeight;
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', messageClass);
+
+        // Check if the message contains details to be expandable
+        if (message.includes("||DETAILS START||") && message.includes("||DETAILS END||")) {
+            const [beforeDetails, detailsSection, afterDetails] = message.split(/(\|\|DETAILS START\|\|[\s\S]*\|\|DETAILS END\|\|)/);
+
+            messageElement.innerHTML = beforeDetails;
+
+            const detailsContainer = document.createElement('div');
+            detailsContainer.style.display = 'none'; // Initially hidden
+            detailsContainer.innerHTML = detailsSection.replace("||DETAILS START||", "").replace("||DETAILS END||", "");
+
+            const expandButton = document.createElement('button');
+            expandButton.classList.add("expand-button"); // Add the class here
+            expandButton.textContent = "Show Details";
+            expandButton.addEventListener('click', () => {
+                if (detailsContainer.style.display === 'none') {
+                    detailsContainer.style.display = 'block';
+                    detailsContainer.style.font = 'block'
+                    expandButton.textContent = "Hide Details";
+                } else {
+                    detailsContainer.style.display = 'none';
+                    expandButton.textContent = "Show Details";
+                }
+            });
+
+            messageElement.appendChild(expandButton);
+            messageElement.appendChild(detailsContainer);
+            if (afterDetails) {  // Append any content after the details
+                const afterDetailsElement = document.createElement('div');
+                afterDetailsElement.innerHTML = afterDetails;
+                messageElement.appendChild(afterDetailsElement);
+            }
+
+        } else {
+            messageElement.innerHTML = message; // Display the message normally if no details are present
         }
+
+
+        chatbox.appendChild(messageElement);
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
     </script>
 </body>
 

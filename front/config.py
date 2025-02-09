@@ -1,4 +1,4 @@
-SERVICE_NAME = 'test-anne'
+SERVICE_NAME = 'anne'
 REGION = 'europe-west6'
 PROJECT = 'amis-fondation-seguin'
 PROJECT_NUMBER = '303057230676'
